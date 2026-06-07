@@ -1,0 +1,211 @@
+/* Notifications Stylesheet */
+
+.notifications-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.notifications-intro h2 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.notifications-intro p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.notifications-loading {
+  padding: 45px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Notifications List Cards */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.notification-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 24px;
+  transition: var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.notification-card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+}
+
+/* Card Borders by Status */
+.notification-card.status-pending {
+  border-left: 4px solid var(--warning);
+}
+
+.notification-card.status-accepted {
+  border-left: 4px solid var(--success);
+}
+
+.notification-card.status-rejected {
+  border-left: 4px solid var(--danger);
+}
+
+/* Card Header elements */
+.notification-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.notification-icon-indicator {
+  font-size: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.notification-card.status-pending .notification-icon-indicator {
+  color: var(--warning);
+}
+
+.notification-card.status-accepted .notification-icon-indicator {
+  color: var(--success);
+}
+
+.notification-card.status-rejected .notification-icon-indicator {
+  color: var(--danger);
+}
+
+.notification-card-info {
+  flex-grow: 1;
+}
+
+.notification-card-info h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.notification-card-action-text {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.notification-card-action-text strong {
+  color: var(--text-main);
+}
+
+/* Status Pill Badge */
+.status-pill-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.5px;
+}
+
+.status-pill-badge.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+}
+
+.status-pill-badge.accepted {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.status-pill-badge.rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+/* Action Buttons */
+.notification-buttons-panel {
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 18px;
+}
+
+.btn-notification-action {
+  padding: 10px 20px;
+  border-radius: var(--border-radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-notification-action.accept {
+  background: var(--success);
+  border: none;
+  color: #fff;
+}
+
+.btn-notification-action.accept:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.btn-notification-action.reject {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.btn-notification-action.reject:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.notification-status-notice {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  border-top: 1px solid var(--border-color);
+  padding-top: 18px;
+}
+
+/* Empty State */
+.notifications-empty-state {
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 60px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.notifications-empty-state .empty-state-icon {
+  font-size: 40px;
+}
+
+.notifications-empty-state p {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 320px;
+  line-height: 1.5;
+}
