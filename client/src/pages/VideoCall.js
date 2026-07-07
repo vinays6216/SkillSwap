@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import io from "socket.io-client";
 import DashboardLayout from "../components/DashboardLayout";
 import "../styles/VideoCall.css";
 
@@ -7,6 +8,42 @@ function VideoCall() {
   const [micMuted, setMicMuted] = useState(false);
   const [camOff, setCamOff] = useState(false);
   const [callTime, setCallTime] = useState(0);
+
+  const socketRef = useRef(null);
+  const currentUserId = localStorage.getItem("userId");
+  const currentUserName = localStorage.getItem("userName") || "User";
+
+  useEffect(() => {
+    // Connect to Socket.io signaling server
+    socketRef.current = io("http://localhost:5000");
+
+    // Join room
+    socketRef.current.emit("join_room", currentUserId);
+
+    // Listen for incoming calls signaling
+    socketRef.current.on("call_incoming", (data) => {
+      console.log("☎ Incoming call from:", data.name);
+      // Automatically answer call in prototype
+      socketRef.current.emit("answer_call", { to: data.from, signal: "proto-answer-data" });
+      setInCall(true);
+    });
+
+    socketRef.current.on("call_accepted", (signal) => {
+      console.log("✅ Call accepted with WebRTC signaling payload:", signal);
+      setInCall(true);
+    });
+
+    socketRef.current.on("ice_candidate_received", (candidate) => {
+      console.log("❄ Relaying WebRTC ICE Candidate:", candidate);
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let interval = null;
@@ -19,6 +56,18 @@ function VideoCall() {
     }
     return () => clearInterval(interval);
   }, [inCall]);
+
+  const handleStartCall = () => {
+    console.log("📞 Initiating call signaling to peer...");
+    // Mock calling another tutor/swapper
+    socketRef.current.emit("call_user", {
+      userToCall: "mock-peer-id", 
+      signalData: "proto-offer-data",
+      from: currentUserId,
+      name: currentUserName
+    });
+    setInCall(true);
+  };
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -35,11 +84,11 @@ function VideoCall() {
     <DashboardLayout pageTitle="Video Call">
       <div className="video-page-wrapper fade-in">
         {!inCall ? (
-          /* Lobby / Prep State */
+          /* Lobby Prep State */
           <div className="lobby-container-card">
             <div className="lobby-header">
               <h2>SkillSwap Virtual Classroom 🎥</h2>
-              <p>Prepare your camera and microphone before starting your exchange session.</p>
+              <p>Prepare your camera and microphone before starting your peer-to-peer lesson.</p>
             </div>
             
             <div className="lobby-preview-box">
@@ -68,7 +117,7 @@ function VideoCall() {
             </div>
 
             <div className="lobby-actions">
-              <button onClick={() => setInCall(true)} className="btn-join-call glow-effect">
+              <button onClick={handleStartCall} className="btn-join-call glow-effect">
                 Join Classroom Room
               </button>
             </div>
@@ -76,7 +125,6 @@ function VideoCall() {
         ) : (
           /* Active Call State */
           <div className="classroom-main">
-            {/* Header info */}
             <div className="classroom-status-bar">
               <div className="status-left">
                 <span className="live-dot"></span>
@@ -87,9 +135,8 @@ function VideoCall() {
               </div>
             </div>
 
-            {/* Video Streams Container */}
             <div className="classroom-grids">
-              {/* Remote feed */}
+              {/* Remote stream */}
               <div className="video-grid-box remote">
                 <div className="video-overlay">
                   <span className="partner-avatar-emoji">🎨</span>
@@ -105,7 +152,7 @@ function VideoCall() {
                 </div>
               </div>
 
-              {/* Local feed */}
+              {/* Local stream */}
               <div className="video-grid-box local">
                 <div className="video-overlay">
                   <h4>You (React Developer)</h4>
@@ -123,7 +170,6 @@ function VideoCall() {
               </div>
             </div>
 
-            {/* Controls Bar Panel */}
             <div className="classroom-controls-dock">
               <button 
                 onClick={() => setMicMuted(!micMuted)} 
@@ -143,10 +189,14 @@ function VideoCall() {
 
               <button 
                 className="control-dock-btn"
-                onClick={() => alert("Screen sharing is mocked for this preview.")}
-                title="Share Screen"
+                onClick={() => {
+                  console.log("❄ Initiating WebRTC ICE Relay Candidate mock");
+                  socketRef.current.emit("ice_candidate", { to: "mock-peer-id", candidate: "mock-ice-data" });
+                  alert("ICE Candidate Signal Transmitted!");
+                }}
+                title="Transmit ICE Candidate Signal"
               >
-                🖥
+                ❄
               </button>
 
               <button 

@@ -1,0 +1,367 @@
+/* Course Details Page Stylesheet */
+
+.course-details-loading {
+  height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text-muted);
+}
+
+.course-details-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header */
+.details-header-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 30px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.details-category-badge {
+  background: rgba(99, 102, 241, 0.1);
+  color: #a5b4fc;
+  border: 1px solid var(--border-color-active);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  align-self: flex-start;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.details-header-card h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.details-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.details-meta-row strong {
+  color: var(--text-main);
+}
+
+.details-stars {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.separator {
+  color: rgba(255,255,255,0.1);
+}
+
+/* Grid Layout */
+.details-grid-layout {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 30px;
+}
+
+/* Main Column */
+.details-banner-image {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.details-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 30px;
+  margin-bottom: 24px;
+}
+
+.details-section h3 {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  border-left: 3px solid var(--primary);
+  padding-left: 12px;
+}
+
+.details-description-text {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Syllabus list */
+.details-lessons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.details-lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(0,0,0,0.15);
+  padding: 14px 20px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid transparent;
+  transition: var(--transition-fast);
+}
+
+.details-lesson-row:hover {
+  border-color: var(--border-color);
+  background: rgba(255,255,255,0.01);
+}
+
+.details-lesson-idx {
+  font-size: 13px;
+  font-weight: 800;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.details-lesson-info h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.details-lesson-info p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Teacher details info card */
+.teacher-info-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.teacher-card-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--border-color-active);
+  background: var(--bg-dark-accent);
+}
+
+.teacher-card-details h4 {
+  font-size: 16.5px;
+  font-weight: 800;
+}
+
+.teacher-stars-label {
+  font-size: 13px;
+  color: var(--warning);
+  font-weight: 600;
+  margin: 3px 0 6px 0;
+}
+
+.teacher-bio-snippet {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Reviews List */
+.details-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.details-review-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(0,0,0,0.1);
+}
+
+.review-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reviewer-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reviewer-info h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.review-rating-stars {
+  color: var(--warning);
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.review-comment-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.review-date-tag {
+  font-size: 11px;
+  color: var(--text-muted);
+  align-self: flex-end;
+}
+
+/* Sidebar Columns */
+.action-sidebar-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 30px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--glass-shadow);
+  position: sticky;
+  top: 104px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.action-sidebar-card h4 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.sidebar-promo-desc {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.sidebar-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 0;
+}
+
+.sidebar-meta-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+}
+
+.sidebar-meta-item span {
+  color: var(--text-muted);
+}
+
+.sidebar-meta-item strong {
+  color: var(--text-main);
+}
+
+.free-tag-highlight {
+  color: var(--success) !important;
+}
+
+.btn-enroll-action {
+  width: 100%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: var(--border-radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--glow-shadow);
+  transition: var(--transition-normal);
+}
+
+.btn-enroll-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-enroll-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-sidebar-secondary {
+  width: 100%;
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  border-radius: var(--border-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-sidebar-secondary:hover {
+  background: rgba(255,255,255,0.03);
+  border-color: var(--primary);
+}
+
+.empty-lessons-notice, .empty-reviews-notice {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .details-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .action-sidebar-card {
+    position: static;
+  }
+}

@@ -13,6 +13,11 @@ function Register() {
   });
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
+    name: "",
+    email: "",
+    password: ""
+  });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -21,13 +26,55 @@ function Register() {
       [e.target.name]: e.target.value
     });
     if (errorMsg) setErrorMsg("");
+    setFieldErrors({
+      ...fieldErrors,
+      [e.target.name]: ""
+    });
+  };
+
+  const validateForm = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const errors = {
+      name: "",
+      email: "",
+      password: ""
+    };
+    let hasError = false;
+
+    if (!formData.name.trim()) {
+      errors.name = "Enter your full name.";
+      hasError = true;
+    }
+
+    if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
+      errors.email = "Enter a valid email address.";
+      hasError = true;
+    }
+
+    if (!formData.password.trim() || formData.password.length < 6) {
+      errors.password = "Password must be at least 6 characters.";
+      hasError = true;
+    }
+
+    setFieldErrors(errors);
+
+    if (hasError) {
+      setErrorMsg("Please fix the highlighted fields before continuing.");
+    }
+
+    return !hasError;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const response = await API.post("/auth/register", formData);
@@ -78,6 +125,7 @@ function Register() {
               onChange={handleChange}
               required
             />
+            {fieldErrors.name && <span className="field-error">{fieldErrors.name}</span>}
           </div>
 
           <div className="input-group">
@@ -91,6 +139,7 @@ function Register() {
               onChange={handleChange}
               required
             />
+            {fieldErrors.email && <span className="field-error">{fieldErrors.email}</span>}
           </div>
 
           <div className="input-group">
@@ -104,6 +153,7 @@ function Register() {
               onChange={handleChange}
               required
             />
+            {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
           </div>
 
           <button type="submit" className="register-btn glow-effect" disabled={loading}>

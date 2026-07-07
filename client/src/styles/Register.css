@@ -110,6 +110,13 @@
   letter-spacing: 0.2px;
 }
 
+.field-error {
+  color: #fecaca;
+  font-size: 12px;
+  margin-top: 4px;
+  line-height: 1.25;
+}
+
 .input-group input {
   width: 100%;
   padding: 12px 16px;

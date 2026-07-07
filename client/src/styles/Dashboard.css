@@ -71,6 +71,110 @@
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
 }
 
+/* Enrolled Courses Track */
+.dashboard-enrolled-courses {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-section-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.dashboard-section-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.enrolled-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.enrolled-track-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.enrolled-track-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-color-active);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.track-thumb-wrapper {
+  width: 90px;
+  height: 70px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.track-thumb-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.track-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.track-details h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-details p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.track-progress-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.track-progress-bar-container {
+  flex-grow: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.track-progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.track-progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
 /* Stats Grid */
 .dashboard-stats-grid {
   display: grid;
@@ -304,11 +408,9 @@
 }
 
 .user-card-title-sub {
-  font-size: 11px;
-  color: var(--success);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--warning);
+  font-weight: 700;
 }
 
 .user-card-bio {

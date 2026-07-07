@@ -6,7 +6,9 @@ const getProfile = async (req, res) => {
 
     const user = await User.findById(
       req.params.id
-    ).select("-password");
+    )
+      .select("-password")
+      .populate("connections", "name bio profileImage averageTeacherRating");
 
     if (!user) {
       return res.status(404).json({
@@ -31,9 +33,9 @@ const updateProfile = async (req, res) => {
 
     const {
       name,
-      bio,
-      profileImage
+      bio
     } = req.body;
+    const file = req.file;
 
     const user = await User.findById(
       req.params.id
@@ -47,8 +49,10 @@ const updateProfile = async (req, res) => {
 
     user.name = name || user.name;
     user.bio = bio || user.bio;
-    user.profileImage =
-      profileImage || user.profileImage;
+
+    if (file) {
+      user.profileImage = `/uploads/${file.filename}`;
+    }
 
     await user.save();
 
@@ -241,6 +245,54 @@ const getAllUsers = async (req, res) => {
   }
 
 };
+const rateTeacher = async (req, res) => {
+  try {
+    const teacherId = req.params.id;
+    const reviewerId = req.user.id;
+    const { rating, comment } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Please provide a rating between 1 and 5" });
+    }
+
+    const teacher = await User.findById(teacherId);
+    if (!teacher) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (teacherId === reviewerId) {
+      return res.status(400).json({ message: "You cannot rate your own teaching profile" });
+    }
+
+    const existingIndex = teacher.reviews.findIndex(r => r.reviewer.toString() === reviewerId);
+
+    if (existingIndex > -1) {
+      teacher.reviews[existingIndex].rating = rating;
+      teacher.reviews[existingIndex].comment = comment || "";
+      teacher.reviews[existingIndex].createdAt = Date.now();
+    } else {
+      teacher.reviews.push({
+        reviewer: reviewerId,
+        rating,
+        comment: comment || ""
+      });
+    }
+
+    const totalReviews = teacher.reviews.length;
+    if (totalReviews > 0) {
+      const sum = teacher.reviews.reduce((acc, curr) => acc + curr.rating, 0);
+      teacher.averageTeacherRating = parseFloat((sum / totalReviews).toFixed(1));
+    } else {
+      teacher.averageTeacherRating = 0;
+    }
+
+    await teacher.save();
+    res.status(200).json({ message: "Teacher rated successfully", teacher });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getProfile,
   getAllUsers,
@@ -248,5 +300,6 @@ module.exports = {
   addSkillOffered,
   deleteSkillOffered,
   addSkillWanted,
-  deleteSkillWanted
+  deleteSkillWanted,
+  rateTeacher
 };

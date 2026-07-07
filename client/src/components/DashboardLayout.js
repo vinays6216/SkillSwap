@@ -24,6 +24,7 @@ function DashboardLayout({ children, pageTitle = "Dashboard" }) {
 
   const navItems = [
     { name: "Dashboard", path: "/dashboard", icon: "🏠" },
+    { name: "Browse Courses", path: "/courses", icon: "🎓" },
     { name: "Profile", path: "/profile", icon: "👤" },
     { name: "Skills Exchange", path: "/skills", icon: "📚" },
     { name: "Chat Rooms", path: "/chat", icon: "💬" },

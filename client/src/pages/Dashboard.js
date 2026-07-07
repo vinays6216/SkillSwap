@@ -8,6 +8,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState([]);
+  const [enrolledProgress, setEnrolledProgress] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const userId = localStorage.getItem("userId");
@@ -21,7 +22,11 @@ function Dashboard() {
     
     const loadData = async () => {
       try {
-        await Promise.all([fetchUser(), fetchUsers()]);
+        await Promise.all([
+          fetchUser(),
+          fetchUsers(),
+          fetchEnrolledCourses()
+        ]);
       } catch (err) {
         console.error("Error loading dashboard data", err);
       } finally {
@@ -34,23 +39,28 @@ function Dashboard() {
 
   const fetchUser = async () => {
     try {
-      const response = await API.get(`/profile/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await API.get(`/profile/${userId}`);
       setUser(response.data);
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching user:", error);
     }
   };
 
   const fetchUsers = async () => {
     try {
-      const response = await API.get("/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await API.get("/profile");
       setUsers(response.data);
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching all users:", error);
+    }
+  };
+
+  const fetchEnrolledCourses = async () => {
+    try {
+      const response = await API.get("/courses/progress/my");
+      setEnrolledProgress(response.data);
+    } catch (error) {
+      console.log("Error fetching enrolled progress:", error);
     }
   };
 
@@ -73,12 +83,11 @@ function Dashboard() {
     return (
       <div className="dashboard-loading">
         <div className="spinner"></div>
-        <p>Syncing your matches...</p>
+        <p>Syncing your dashboard...</p>
       </div>
     );
   }
 
-  // Fallback profile images or placeholders
   const getAvatar = (item) => {
     if (item.profileImage && item.profileImage.startsWith("http")) {
       return item.profileImage;
@@ -89,16 +98,61 @@ function Dashboard() {
   return (
     <DashboardLayout pageTitle="Dashboard">
       <div className="dashboard-content-wrapper fade-in">
+        
         {/* Welcome Section */}
         <div className="welcome-banner">
           <div className="welcome-text">
             <h2>Welcome Back, {user.name}! 👋</h2>
-            <p>You have new potential skill-swap matches waiting in your area.</p>
+            <p>Ready to teach, learn, and exchange skills today?</p>
           </div>
-          <button className="banner-btn" onClick={() => navigate("/profile")}>
-            Complete Profile
+          <button className="banner-btn" onClick={() => navigate("/courses")}>
+            Browse Classes
           </button>
         </div>
+
+        {/* Learning Progress Section (Skillshare-style Course Tracking) */}
+        {enrolledProgress.length > 0 && (
+          <section className="dashboard-enrolled-courses">
+            <div className="dashboard-section-header">
+              <h3>My Enrolled Classes</h3>
+              <p>Track your chapters and finish tasks to complete your courses.</p>
+            </div>
+            
+            <div className="enrolled-courses-grid">
+              {enrolledProgress.map((item) => {
+                if (!item.course) return null;
+                return (
+                  <div 
+                    key={item._id} 
+                    className="enrolled-track-card"
+                    onClick={() => navigate(`/courses/${item.course._id}/watch`)}
+                  >
+                    <div className="track-thumb-wrapper">
+                      <img 
+                        src={item.course.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&auto=format&fit=crop&q=60"} 
+                        alt={item.course.title} 
+                      />
+                    </div>
+                    <div className="track-details">
+                      <h4>{item.course.title}</h4>
+                      <p>Teacher: {item.course.teacher ? item.course.teacher.name : "Tutor"}</p>
+                      
+                      <div className="track-progress-info">
+                        <div className="track-progress-bar-container">
+                          <div 
+                            className="track-progress-bar-fill" 
+                            style={{ width: `${item.progressPercentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="track-progress-text">{item.progressPercentage}% Complete</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Stats Grid */}
         <section className="dashboard-stats-grid">
@@ -124,10 +178,10 @@ function Dashboard() {
             </div>
           </div>
           <div className="stat-widget">
-            <span className="stat-icon">🎥</span>
+            <span className="stat-icon">🎓</span>
             <div className="stat-info">
-              <h3>0</h3>
-              <p>Lessons Completed</p>
+              <h3>{user.averageTeacherRating || "0.0"}</h3>
+              <p>Teaching Score</p>
             </div>
           </div>
         </section>
@@ -150,7 +204,7 @@ function Dashboard() {
 
           <div className="summary-right-card">
             <div className="skills-block">
-              <h4>Teaching Emojis & Skills</h4>
+              <h4>Skills I Can Teach</h4>
               <div className="pill-container">
                 {user.skillsOffered && user.skillsOffered.length > 0 ? (
                   user.skillsOffered.map((skill, i) => (
@@ -193,7 +247,9 @@ function Dashboard() {
                     <img src={getAvatar(item)} alt={item.name} className="user-card-avatar" />
                     <div className="user-card-title">
                       <h4>{item.name}</h4>
-                      <p className="user-card-title-sub">Verified Member</p>
+                      <p className="user-card-title-sub">
+                        ⭐ {item.averageTeacherRating > 0 ? `${item.averageTeacherRating} Score` : "New Teacher"}
+                      </p>
                     </div>
                   </div>
                   
