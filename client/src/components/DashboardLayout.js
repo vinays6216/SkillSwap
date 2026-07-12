@@ -29,6 +29,7 @@ function DashboardLayout({ children, pageTitle = "Dashboard" }) {
     { name: "Skills Exchange", path: "/skills", icon: "📚" },
     { name: "Chat Rooms", path: "/chat", icon: "💬" },
     { name: "Video Call", path: "/video-call", icon: "🎥" },
+    { name: "Video Hub", path: "/videos", icon: "📺" },
     { name: "Notifications", path: "/notifications", icon: "🔔" }
   ];
 

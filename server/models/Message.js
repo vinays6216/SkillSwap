@@ -13,7 +13,11 @@ const messageSchema = new mongoose.Schema({
   },
   text: {
     type: String,
-    required: true
+    default: ""
+  },
+  video: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Video"
   },
   createdAt: {
     type: Date,

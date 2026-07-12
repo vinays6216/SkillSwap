@@ -13,6 +13,11 @@ function Chat() {
   const [inputMsg, setInputMsg] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Video attachment states
+  const [myVideos, setMyVideos] = useState([]);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [selectedVideoAttachment, setSelectedVideoAttachment] = useState(null);
+
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -20,6 +25,7 @@ function Chat() {
 
   useEffect(() => {
     fetchContacts();
+    fetchMyVideos();
 
     // Initialize Socket.io Connection
     socketRef.current = io("http://localhost:5000");
@@ -70,6 +76,19 @@ function Chat() {
     }
   };
 
+  const fetchMyVideos = async () => {
+    try {
+      const response = await API.get("/videos");
+      const list = response.data.filter(v => {
+        const uploaderId = v.uploader?._id || v.uploader;
+        return uploaderId === currentUserId;
+      });
+      setMyVideos(list);
+    } catch (error) {
+      console.error("Error fetching my videos:", error);
+    }
+  };
+
   const handleSelectContact = async (contact) => {
     setActiveChatUser(contact);
     setMessages([]);
@@ -83,18 +102,20 @@ function Chat() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!inputMsg.trim() || !activeChatUser) return;
+    if ((!inputMsg.trim() && !selectedVideoAttachment) || !activeChatUser) return;
 
     const messageData = {
       sender: currentUserId,
       recipient: activeChatUser._id,
-      text: inputMsg
+      text: inputMsg,
+      video: selectedVideoAttachment ? selectedVideoAttachment._id : null
     };
 
     // Emit via WebSocket (Server handles saving to DB and broadcasting to both sender & receiver rooms)
     socketRef.current.emit("send_message", messageData);
     
     setInputMsg("");
+    setSelectedVideoAttachment(null);
   };
 
   const getAvatar = (item) => {
@@ -173,10 +194,24 @@ function Chat() {
               <div className="thread-messages-body">
                 {messages.map((msg, index) => {
                   const isMe = msg.sender === currentUserId;
+                  const hasVideo = msg.video;
                   return (
                     <div key={msg._id || index} className={`message-bubble-wrapper ${isMe ? "me" : "them"}`}>
                       <div className="message-bubble">
-                        <p>{msg.text}</p>
+                        {hasVideo && (
+                          <div className="chat-bubble-video-wrapper" style={{ marginBottom: "8px", maxWidth: "260px", borderRadius: "8px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", background: "#000" }}>
+                            <video 
+                              src={`http://localhost:5000${msg.video.videoUrl}`} 
+                              controls 
+                              style={{ width: "100%", display: "block" }} 
+                              preload="metadata"
+                            />
+                            <div style={{ padding: "6px 10px", fontSize: "12px", background: "rgba(0,0,0,0.6)", color: "#fff", borderTop: "1px solid rgba(255,255,255,0.05)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }} title={msg.video.title}>
+                              🎬 {msg.video.title}
+                            </div>
+                          </div>
+                        )}
+                        {msg.text && <p>{msg.text}</p>}
                         <span className="message-time">
                           {new Date(msg.createdAt).toLocaleTimeString(undefined, {
                             hour: "2-digit",
@@ -191,14 +226,58 @@ function Chat() {
               </div>
 
               {/* Messages Input Box */}
+              {selectedVideoAttachment && (
+                <div className="attached-video-preview" style={{ padding: "8px 16px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.2)", display: "flex", justifyContent: "space-between", alignItems: "center", borderTopLeftRadius: "8px", borderTopRightRadius: "8px" }}>
+                  <span style={{ color: "#34d399", fontSize: "13px", fontWeight: "600" }}>
+                    Attached video: 🎬 {selectedVideoAttachment.title}
+                  </span>
+                  <button type="button" onClick={() => setSelectedVideoAttachment(null)} style={{ background: "transparent", border: "none", color: "var(--danger)", fontSize: "16px", cursor: "pointer" }}>
+                    ×
+                  </button>
+                </div>
+              )}
               <form onSubmit={handleSendMessage} className="thread-input-form">
-                <button type="button" className="btn-attach-mock">📎</button>
+                <div style={{ position: "relative" }}>
+                  <button 
+                    type="button" 
+                    className="btn-attach-mock" 
+                    onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
+                    style={{ background: showAttachmentMenu ? "rgba(99, 102, 241, 0.15)" : "transparent" }}
+                  >
+                    📎
+                  </button>
+                  
+                  {showAttachmentMenu && (
+                    <div className="chat-video-attachment-menu" style={{ position: "absolute", bottom: "45px", left: "0", background: "var(--bg-dark-accent)", border: "1px solid var(--border-color)", borderRadius: "8px", width: "250px", maxHeight: "200px", overflowY: "auto", zIndex: "50", boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
+                      <div style={{ padding: "8px 12px", borderBottom: "1px solid var(--border-color)", fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>Share your video:</div>
+                      {myVideos.length > 0 ? (
+                        myVideos.map((vid) => (
+                          <div 
+                            key={vid._id} 
+                            onClick={() => {
+                              setSelectedVideoAttachment(vid);
+                              setShowAttachmentMenu(false);
+                            }}
+                            style={{ padding: "8px 12px", fontSize: "13px", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                            onMouseEnter={(e) => e.target.style.background = "rgba(99, 102, 241, 0.1)"}
+                            onMouseLeave={(e) => e.target.style.background = "transparent"}
+                            title={vid.title}
+                          >
+                            🎬 {vid.title}
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ padding: "12px", fontSize: "12px", color: "var(--text-muted)" }}>No videos uploaded yet. Upload in Video Hub first!</div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <input
                   type="text"
-                  placeholder={`Send message to ${activeChatUser.name}...`}
+                  placeholder={selectedVideoAttachment ? `Add text description (optional)...` : `Send message to ${activeChatUser.name}...`}
                   value={inputMsg}
                   onChange={(e) => setInputMsg(e.target.value)}
-                  required
+                  required={!selectedVideoAttachment}
                 />
                 <button type="submit" className="btn-send-message-action glow-effect">
                   Send ✉

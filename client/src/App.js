@@ -12,6 +12,7 @@ import VideoCall from "./pages/VideoCall";
 import Courses from "./pages/Courses";
 import CourseDetails from "./pages/CourseDetails";
 import WatchCourse from "./pages/WatchCourse";
+import Videos from "./pages/Videos";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/skills" element={<Skills />} />
         <Route path="/notifications" element={<Notifications />}/>
         <Route path="/video-call" element={<VideoCall />} />
+        <Route path="/videos" element={<Videos />} />
       </Routes>
     </BrowserRouter>
   );

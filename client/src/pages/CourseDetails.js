@@ -201,7 +201,7 @@ function CourseDetails() {
 
               <button
                 className="btn-enroll-action glow-effect"
-                onClick={handleEnrollmentAction}
+                onClick={enrolled ? () => navigate(`/courses/${course._id}/watch`) : handleEnrollmentAction}
                 disabled={actionLoading}
               >
                 {actionLoading ? "Processing..." : enrolled ? "Resume Learning (Watch)" : "Enroll In Class"}

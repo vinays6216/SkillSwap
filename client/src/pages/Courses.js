@@ -1,15 +1,21 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import API from "../services/api";
 import DashboardLayout from "../components/DashboardLayout";
 import "../styles/Courses.css";
+import "../styles/Videos.css";
 
 function Courses() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [courses, setCourses] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [enrolledCategories, setEnrolledCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const currentUserId = localStorage.getItem("userId");
 
   // Form state for creating a new course
   const [newCourse, setNewCourse] = useState({
@@ -27,7 +33,29 @@ function Courses() {
 
   useEffect(() => {
     fetchCourses();
+    fetchVideos();
+    fetchEnrolledCategories();
   }, []);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const categoryQuery = queryParams.get("category");
+    if (categoryQuery && ["Development", "Design", "Music", "Languages", "Business", "Cooking"].includes(categoryQuery)) {
+      setActiveCategory(categoryQuery);
+    }
+  }, [location.search]);
+
+  const fetchEnrolledCategories = async () => {
+    try {
+      const response = await API.get("/courses/progress/my");
+      const categories = response.data
+        .map((p) => p.course?.category)
+        .filter(Boolean);
+      setEnrolledCategories(categories);
+    } catch (error) {
+      console.error("Error fetching enrolled categories:", error);
+    }
+  };
 
   const fetchCourses = async () => {
     try {
@@ -38,6 +66,20 @@ function Courses() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchVideos = async () => {
+    try {
+      const response = await API.get("/videos");
+      setVideos(response.data);
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+    }
+  };
+
+  const isVideoUnlocked = (vid) => {
+    const uploaderId = vid.uploader?._id || vid.uploader;
+    return uploaderId === currentUserId || enrolledCategories.includes(vid.category);
   };
 
   const handleScroll = (category, direction) => {
@@ -160,31 +202,224 @@ function Courses() {
             ) : (
               <p className="no-courses-cat">No classes published under {activeCategory} yet.</p>
             )}
+
+            {/* Video Hub Section for this Category */}
+            <div className="category-videos-section" style={{ marginTop: "48px", borderTop: "1px solid var(--border-color)", paddingTop: "32px" }}>
+              <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "20px" }}>Community Tutorials & Demos ({videos.filter(v => v.category === activeCategory).length})</h3>
+              {videos.filter(v => v.category === activeCategory).length > 0 ? (
+                <div className="videos-grid-view">
+                  {videos.filter(v => v.category === activeCategory).map((vid) => {
+                    const uploaderName = vid.uploader ? vid.uploader.name : "Anonymous Swapper";
+                    const getProfileImage = (uploader) => {
+                      if (uploader && uploader.profileImage) {
+                        return uploader.profileImage.startsWith("http")
+                          ? uploader.profileImage
+                          : `http://localhost:5000${uploader.profileImage}`;
+                      }
+                      return null;
+                    };
+                    const getInitials = (name) => {
+                      return name ? name.charAt(0).toUpperCase() : "U";
+                    };
+                    const profileImg = getProfileImage(vid.uploader);
+
+                    const isUnlocked = isVideoUnlocked(vid);
+                    if (!isUnlocked) {
+                      return (
+                        <div key={vid._id} className="video-card-widget locked-card" style={{ height: "100%", minHeight: "260px", position: "relative" }}>
+                          <div className="video-locked-overlay" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(11, 15, 23, 0.95)", backdropFilter: "blur(8px)", padding: "20px", borderRadius: "var(--border-radius-md)", textAlign: "center" }}>
+                            <span className="lock-icon" style={{ fontSize: "32px", marginBottom: "8px" }}>🔒</span>
+                            <span className="lock-text" style={{ fontSize: "16px", fontWeight: "700", color: "#fff", textTransform: "uppercase" }}>{vid.category} Tutorial</span>
+                            <span className="lock-subtext" style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px", marginBottom: "12px" }}>Enroll in a {vid.category} course to unlock this video</span>
+                            <button 
+                              className="promo-btn" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/courses?category=${vid.category}`);
+                              }}
+                              style={{ padding: "6px 12px", fontSize: "11px" }}
+                            >
+                              Browse {vid.category} Courses to Unlock
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={vid._id} className="video-card-widget">
+                        <div className="card-video-player-wrapper">
+                          <video 
+                            className="card-video-player" 
+                            src={`http://localhost:5000${vid.videoUrl}`}
+                            controls
+                            preload="metadata"
+                          />
+                          {vid.category && (
+                            <span className="video-card-badge">{vid.category}</span>
+                          )}
+                        </div>
+                        <div className="video-card-details">
+                          <h4 className="video-title-text" title={vid.title}>
+                            {vid.title}
+                          </h4>
+                          {vid.description && (
+                            <p className="video-description-text" title={vid.description}>
+                              {vid.description}
+                            </p>
+                          )}
+                          <div className="video-card-footer">
+                            <div className="uploader-avatar-mini" title={uploaderName}>
+                              {profileImg ? (
+                                <img src={profileImg} alt={uploaderName} className="uploader-img-mini" />
+                              ) : (
+                                getInitials(uploaderName)
+                              )}
+                            </div>
+                            <div className="uploader-details-meta">
+                              <span className="uploader-name-meta">{uploaderName}</span>
+                              <span className="upload-date-meta">
+                                {new Date(vid.createdAt).toLocaleDateString(undefined, {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric"
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="no-courses-cat" style={{ marginTop: "15px" }}>No skill videos uploaded for {activeCategory} yet.</p>
+              )}
+            </div>
           </div>
         ) : (
           /* Multi Category Carousel Rows (referencing Skillshare main page) */
           <div className="all-categories-showcase">
             {categories.slice(1).map((cat) => {
               const catCourses = getCategorizedCourses(cat);
-              if (catCourses.length === 0) return null;
+              const catVideos = videos.filter(v => v.category === cat);
+              if (catCourses.length === 0 && catVideos.length === 0) return null;
               return (
-                <div className="category-row-wrapper" key={cat}>
+                <div className="category-row-wrapper" key={cat} style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "24px", marginBottom: "24px" }}>
                   <div className="category-row-header">
                     <h3>{cat}</h3>
-                    <div className="carousel-control-arrows">
-                      <button onClick={() => handleScroll(cat, "left")}>‹</button>
-                      <button onClick={() => handleScroll(cat, "right")}>›</button>
-                    </div>
+                    {catCourses.length > 0 && (
+                      <div className="carousel-control-arrows">
+                        <button onClick={() => handleScroll(cat, "left")}>‹</button>
+                        <button onClick={() => handleScroll(cat, "right")}>›</button>
+                      </div>
+                    )}
                   </div>
                   
-                  <div 
-                    className="category-carousel-container"
-                    ref={(el) => (carouselRefs.current[cat] = el)}
-                  >
-                    {catCourses.map((course) => (
-                      <CourseCard key={course._id} course={course} navigate={navigate} isCarouselItem={true} />
-                    ))}
-                  </div>
+                  {catCourses.length > 0 ? (
+                    <div 
+                      className="category-carousel-container"
+                      ref={(el) => (carouselRefs.current[cat] = el)}
+                    >
+                      {catCourses.map((course) => (
+                        <CourseCard key={course._id} course={course} navigate={navigate} isCarouselItem={true} />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="no-courses-cat" style={{ padding: "10px 0 20px 0" }}>No classes published under {cat} yet.</p>
+                  )}
+
+                  {/* Render category videos if any exist under the All tab row */}
+                  {catVideos.length > 0 && (
+                    <div style={{ marginTop: "16px" }}>
+                      <h4 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "12px" }}>Community Tutorials & Demos in {cat}:</h4>
+                      <div className="videos-grid-view">
+                        {catVideos.map((vid) => {
+                          const uploaderName = vid.uploader ? vid.uploader.name : "Anonymous Swapper";
+                          const getProfileImage = (uploader) => {
+                            if (uploader && uploader.profileImage) {
+                              return uploader.profileImage.startsWith("http")
+                                ? uploader.profileImage
+                                : `http://localhost:5000${uploader.profileImage}`;
+                            }
+                            return null;
+                          };
+                          const getInitials = (name) => {
+                            return name ? name.charAt(0).toUpperCase() : "U";
+                          };
+                          const profileImg = getProfileImage(vid.uploader);
+                          const isUnlocked = isVideoUnlocked(vid);
+
+                          if (!isUnlocked) {
+                            return (
+                              <div key={vid._id} className="video-card-widget locked-card" style={{ height: "100%", minHeight: "260px", position: "relative" }}>
+                                <div className="video-locked-overlay" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(11, 15, 23, 0.95)", backdropFilter: "blur(8px)", padding: "20px", borderRadius: "var(--border-radius-md)", textAlign: "center" }}>
+                                  <span className="lock-icon" style={{ fontSize: "32px", marginBottom: "8px" }}>🔒</span>
+                                  <span className="lock-text" style={{ fontSize: "16px", fontWeight: "700", color: "#fff", textTransform: "uppercase" }}>{vid.category} Tutorial</span>
+                                  <span className="lock-subtext" style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px", marginBottom: "12px" }}>Enroll in a {vid.category} course to unlock this video</span>
+                                  <button 
+                                    className="promo-btn" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/courses?category=${vid.category}`);
+                                    }}
+                                    style={{ padding: "6px 12px", fontSize: "11px" }}
+                                  >
+                                    Browse {vid.category} Courses to Unlock
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div key={vid._id} className="video-card-widget">
+                              <div className="card-video-player-wrapper">
+                                <video 
+                                  className="card-video-player" 
+                                  src={`http://localhost:5000${vid.videoUrl}`}
+                                  controls
+                                  preload="metadata"
+                                />
+                                {vid.category && (
+                                  <span className="video-card-badge">{vid.category}</span>
+                                )}
+                              </div>
+                              <div className="video-card-details">
+                                <h4 className="video-title-text" title={vid.title}>
+                                  {vid.title}
+                                </h4>
+                                {vid.description && (
+                                  <p className="video-description-text" title={vid.description}>
+                                    {vid.description}
+                                  </p>
+                                )}
+                                <div className="video-card-footer">
+                                  <div className="uploader-avatar-mini" title={uploaderName}>
+                                    {profileImg ? (
+                                      <img src={profileImg} alt={uploaderName} className="uploader-img-mini" />
+                                    ) : (
+                                      getInitials(uploaderName)
+                                    )}
+                                  </div>
+                                  <div className="uploader-details-meta">
+                                    <span className="uploader-name-meta">{uploaderName}</span>
+                                    <span className="upload-date-meta">
+                                      {new Date(vid.createdAt).toLocaleDateString(undefined, {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric"
+                                      })}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

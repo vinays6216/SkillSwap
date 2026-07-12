@@ -12,7 +12,9 @@ const getMessages = async (req, res) => {
         { sender: userId, recipient: peerId },
         { sender: peerId, recipient: userId }
       ]
-    }).sort({ createdAt: 1 }); // Sort ascending by time
+    })
+      .populate("video")
+      .sort({ createdAt: 1 }); // Sort ascending by time
 
     res.status(200).json(messages);
   } catch (error) {

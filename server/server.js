@@ -14,6 +14,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const videoRoutes = require("./routes/videoRoutes");
 const Message = require("./models/Message");
 
 dotenv.config();
@@ -44,20 +45,23 @@ io.on("connection", (socket) => {
   // Direct Message listener (saves to Mongo, then emits to rooms of sender & receiver)
   socket.on("send_message", async (data) => {
     try {
-      const { sender, recipient, text } = data;
-      if (!sender || !recipient || !text) return;
+      const { sender, recipient, text, video } = data;
+      if (!sender || !recipient) return;
 
       const messageObj = new Message({
         sender,
         recipient,
-        text
+        text: text || "",
+        video: video || null
       });
 
       await messageObj.save();
 
+      const populatedMessage = await Message.findById(messageObj._id).populate("video");
+
       // Emit message payload to the recipient and sender rooms
-      io.to(recipient).emit("receive_message", messageObj);
-      io.to(sender).emit("receive_message", messageObj);
+      io.to(recipient).emit("receive_message", populatedMessage);
+      io.to(sender).emit("receive_message", populatedMessage);
     } catch (error) {
       console.error("❌ Socket message save error:", error.message);
     }
@@ -122,6 +126,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/videos", videoRoutes);
 
 /* Test / Staging Route */
 app.get("/", (req, res) => {

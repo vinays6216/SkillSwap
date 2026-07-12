@@ -111,17 +111,33 @@ function WatchCourse() {
           
           {/* Left Side: Video & Rating form */}
           <div className="watch-video-column">
-            <div className="video-player-viewport">
+            <div className="video-player-viewport" style={{ background: "#000", position: "relative", width: "100%", aspectRatio: "16/9", borderRadius: "12px", overflow: "hidden" }}>
               {activeLesson ? (
-                <div className="video-screen-mock">
-                  {/* Skillshare-like player frame */}
-                  <span className="player-icon">🎬</span>
-                  <div className="lesson-video-title">
-                    <h3>Lesson {activeLessonIdx + 1}: {activeLesson.title}</h3>
-                    <p>Duration: {activeLesson.duration || "5 mins"}</p>
-                  </div>
-                  <div className="play-overlay">Click to Play Lesson Video</div>
-                </div>
+                <video
+                  key={activeLesson._id || activeLessonIdx}
+                  className="lesson-video-player"
+                  src={activeLesson.videoUrl ? (activeLesson.videoUrl.startsWith("http") ? activeLesson.videoUrl : `http://localhost:5000${activeLesson.videoUrl}`) : "https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4"}
+                  controls
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  onEnded={() => {
+                    const lessonId = activeLesson._id || activeLessonIdx.toString();
+                    const isCompleted = progress.completedLessons.includes(lessonId);
+                    if (!isCompleted) {
+                      handleLessonToggle(lessonId, false);
+                    }
+                  }}
+                  onTimeUpdate={(e) => {
+                    const video = e.target;
+                    // If video reaches near the end (within 2 seconds of total duration)
+                    if (video.duration && video.currentTime >= video.duration - 2) {
+                      const lessonId = activeLesson._id || activeLessonIdx.toString();
+                      const isCompleted = progress.completedLessons.includes(lessonId);
+                      if (!isCompleted) {
+                        handleLessonToggle(lessonId, false);
+                      }
+                    }
+                  }}
+                />
               ) : (
                 <div className="no-lesson-preview">No active lessons selected.</div>
               )}
