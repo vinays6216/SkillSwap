@@ -22,8 +22,8 @@ const courseProgressSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["in-progress", "completed"],
-    default: "in-progress"
+    enum: ["pending-approval", "in-progress", "completed"],
+    default: "pending-approval"
   },
   lastAccessed: {
     type: Date,

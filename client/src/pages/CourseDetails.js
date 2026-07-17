@@ -9,6 +9,7 @@ function CourseDetails() {
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [enrolled, setEnrolled] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -32,8 +33,15 @@ function CourseDetails() {
   const checkEnrollmentStatus = async () => {
     try {
       const response = await API.get(`/courses/${id}/progress`);
-      if (response.data && response.data.enrolled) {
-        setEnrolled(true);
+      if (response.data && response.data.progress) {
+        const status = response.data.progress.status;
+        if (status === "pending-approval") {
+          setIsPending(true);
+          setEnrolled(false);
+        } else if (status === "in-progress" || status === "completed") {
+          setEnrolled(true);
+          setIsPending(false);
+        }
       }
     } catch (error) {
       // 404 means not enrolled, which is normal
@@ -49,8 +57,8 @@ function CourseDetails() {
     setActionLoading(true);
     try {
       await API.post(`/courses/${id}/enroll`);
-      setEnrolled(true);
-      navigate(`/courses/${id}/watch`);
+      setIsPending(true);
+      alert("Enrollment request sent to the teacher! Access will unlock once approved.");
     } catch (error) {
       console.error("Enrollment error:", error);
       alert("Failed to enroll in this course.");
@@ -115,21 +123,31 @@ function CourseDetails() {
             {/* Syllabus */}
             <div className="details-section">
               <h3>Syllabus ({course.lessons ? course.lessons.length : 0} Lessons)</h3>
-              <div className="details-lessons-list">
-                {course.lessons && course.lessons.length > 0 ? (
-                  course.lessons.map((lesson, idx) => (
-                    <div className="details-lesson-row" key={lesson._id || idx}>
-                      <span className="details-lesson-idx">{idx + 1}</span>
-                      <div className="details-lesson-info">
-                        <h4>{lesson.title}</h4>
-                        <p>{lesson.duration || "5 mins"}</p>
+              {enrolled ? (
+                <div className="details-lessons-list">
+                  {course.lessons && course.lessons.length > 0 ? (
+                    course.lessons.map((lesson, idx) => (
+                      <div className="details-lesson-row" key={lesson._id || idx}>
+                        <span className="details-lesson-idx">{idx + 1}</span>
+                        <div className="details-lesson-info">
+                          <h4>{lesson.title}</h4>
+                          <p>{lesson.duration || "5 mins"}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-lessons-notice">No lessons published yet.</p>
-                )}
-              </div>
+                    ))
+                  ) : (
+                    <p className="empty-lessons-notice">No lessons published yet.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="syllabus-locked-banner" style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px dashed var(--border-color)", borderRadius: "var(--border-radius-sm)", padding: "30px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                  <span className="lock-icon" style={{ fontSize: "28px" }}>🔒</span>
+                  <h4 style={{ fontSize: "15px", fontWeight: "700", color: "#fff" }}>Syllabus Locked</h4>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", maxWidth: "320px", margin: "0 auto" }}>
+                    Enroll in this class to unlock all {course.lessons ? course.lessons.length : 0} lessons and start learning today.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Teacher info card */}
@@ -202,9 +220,15 @@ function CourseDetails() {
               <button
                 className="btn-enroll-action glow-effect"
                 onClick={enrolled ? () => navigate(`/courses/${course._id}/watch`) : handleEnrollmentAction}
-                disabled={actionLoading}
+                disabled={actionLoading || isPending}
               >
-                {actionLoading ? "Processing..." : enrolled ? "Resume Learning (Watch)" : "Enroll In Class"}
+                {actionLoading 
+                  ? "Processing..." 
+                  : isPending 
+                    ? "Pending Teacher Approval" 
+                    : enrolled 
+                      ? "Resume Learning (Watch)" 
+                      : "Enroll In Class"}
               </button>
               
               <button className="btn-sidebar-secondary" onClick={() => navigate("/courses")}>

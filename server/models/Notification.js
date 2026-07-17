@@ -14,6 +14,17 @@ new mongoose.Schema({
     required: true
   },
 
+  recipient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Course"
+  },
+
   skill: {
     type: String,
     required: true
@@ -21,7 +32,8 @@ new mongoose.Schema({
 
   status: {
     type: String,
-    default: "pending"
+    default: "pending",
+    enum: ["pending", "accepted", "rejected"]
   },
 
   createdAt: {

@@ -1,5 +1,7 @@
 const Course = require("../models/Course");
 const CourseProgress = require("../models/CourseProgress");
+const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 /* Get All Courses */
 const getAllCourses = async (req, res) => {
@@ -67,6 +69,11 @@ const enrollInCourse = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
+    const studentUser = await User.findById(userId);
+    if (!studentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     // Check if already enrolled
     let progress = await CourseProgress.findOne({ user: userId, course: courseId });
     
@@ -76,17 +83,25 @@ const enrollInCourse = async (req, res) => {
         course: courseId,
         completedLessons: [],
         progressPercentage: 0,
-        status: "in-progress"
+        status: "pending-approval"
       });
 
       await progress.save();
 
-      // Increment enrollment count
-      course.enrollmentCount += 1;
-      await course.save();
+      // Create notification request for the course teacher
+      const notification = new Notification({
+        sender: userId,
+        senderName: studentUser.name,
+        recipient: course.teacher,
+        course: courseId,
+        skill: course.title,
+        status: "pending"
+      });
+
+      await notification.save();
     }
 
-    res.status(200).json({ message: "Enrolled successfully", progress });
+    res.status(200).json({ message: "Enrollment request created successfully", progress });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -96,7 +111,7 @@ const enrollInCourse = async (req, res) => {
 const getUserProgress = async (req, res) => {
   try {
     const userId = req.user.id;
-    const progressList = await CourseProgress.find({ user: userId })
+    const progressList = await CourseProgress.find({ user: userId, status: { $ne: "pending-approval" } })
       .populate({
         path: "course",
         populate: {

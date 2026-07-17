@@ -1,37 +1,17 @@
-const express =
-require("express");
-
-const router =
-express.Router();
+const express = require("express");
+const router = express.Router();
+const authMiddleware = require("../middleware/authMiddleware");
 
 const {
   sendNotification,
   getNotifications,
   acceptNotification,
   rejectNotification
-} = require(
-"../controllers/notificationController"
-);
+} = require("../controllers/notificationController");
 
-router.post(
-  "/send",
-  sendNotification
-);
+router.post("/send", authMiddleware, sendNotification);
+router.get("/", authMiddleware, getNotifications);
+router.put("/accept/:id", authMiddleware, acceptNotification);
+router.put("/reject/:id", authMiddleware, rejectNotification);
 
-router.get(
-  "/",
-  getNotifications
-);
-
-router.put(
-  "/accept/:id",
-  acceptNotification
-);
-
-router.put(
-  "/reject/:id",
-  rejectNotification
-);
-
-module.exports =
-router;
+module.exports = router;

@@ -25,10 +25,22 @@ function WatchCourse() {
   const loadCourseAndProgress = async () => {
     try {
       const courseRes = await API.get(`/courses/${id}`);
-      setCourse(courseRes.data);
+      const courseData = courseRes.data;
+      setCourse(courseData);
       
       const progressRes = await API.get(`/courses/${id}/progress`);
-      setProgress(progressRes.data.progress);
+      const progressData = progressRes.data.progress;
+
+      const userId = localStorage.getItem("userId");
+      const isTeacher = courseData.teacher?._id === userId || courseData.teacher === userId;
+
+      if (progressData.status === "pending-approval" && !isTeacher) {
+        alert("Your enrollment request is pending teacher approval.");
+        navigate(`/courses/${id}`);
+        return;
+      }
+
+      setProgress(progressData);
     } catch (error) {
       console.error("Error loading watch details:", error);
       alert("Please enroll in this course before watching.");

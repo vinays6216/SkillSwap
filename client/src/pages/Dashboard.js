@@ -64,12 +64,13 @@ function Dashboard() {
     }
   };
 
-  const handleSendSwapRequest = async (targetUserName, skill) => {
+  const handleSendSwapRequest = async (targetUserId, targetUserName, skill) => {
     try {
       const userName = localStorage.getItem("userName") || "Someone";
       await API.post("/notifications/send", {
         sender: userId,
         senderName: userName,
+        recipient: targetUserId,
         skill: skill
       });
       alert(`Request sent to ${targetUserName} to learn "${skill}"!`);
@@ -264,7 +265,7 @@ function Dashboard() {
                         {item.skillsOffered && item.skillsOffered.map((skill, idx) => (
                           <button 
                             key={idx} 
-                            onClick={() => handleSendSwapRequest(item.name, skill)}
+                            onClick={() => handleSendSwapRequest(item._id, item.name, skill)}
                             className="exchange-skill-pill"
                             title="Click to request swap"
                           >
